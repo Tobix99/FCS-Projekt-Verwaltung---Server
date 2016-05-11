@@ -1,0 +1,66 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="My" GeneratedClassName="MySettings" UseMySettingsClassName="true">
+  <Profiles />
+  <Settings>
+    <Setting Name="port" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">42647</Value>
+    </Setting>
+    <Setting Name="main_path" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\FCS-Verwaltung</Value>
+    </Setting>
+    <Setting Name="userdatabase_path" Type="System.String" Scope="User">
+      <Value Profile="(Default)">user.usfcs</Value>
+    </Setting>
+    <Setting Name="import_path" Type="System.String" Scope="User">
+      <Value Profile="(Default)">import</Value>
+    </Setting>
+    <Setting Name="encode_path" Type="System.String" Scope="User">
+      <Value Profile="(Default)">encode</Value>
+    </Setting>
+    <Setting Name="project_path" Type="System.String" Scope="User">
+      <Value Profile="(Default)">projects</Value>
+    </Setting>
+    <Setting Name="temp_path" Type="System.String" Scope="User">
+      <Value Profile="(Default)">temp</Value>
+    </Setting>
+    <Setting Name="projectdatabse_path" Type="System.String" Scope="User">
+      <Value Profile="(Default)">projects.prfcs</Value>
+    </Setting>
+    <Setting Name="cameradatabse_path" Type="System.String" Scope="User">
+      <Value Profile="(Default)">camera.cafsc</Value>
+    </Setting>
+    <Setting Name="categorydatabase_path" Type="System.String" Scope="User">
+      <Value Profile="(Default)">category.ctfcs</Value>
+    </Setting>
+    <Setting Name="cutom_ip_bo" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="custom_ip" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="template_path" Type="System.String" Scope="User">
+      <Value Profile="(Default)">template</Value>
+    </Setting>
+    <Setting Name="template_preset_path" Type="System.String" Scope="User">
+      <Value Profile="(Default)">preset</Value>
+    </Setting>
+    <Setting Name="template_custom_path" Type="System.String" Scope="User">
+      <Value Profile="(Default)">custom</Value>
+    </Setting>
+    <Setting Name="musicdatabase_path" Type="System.String" Scope="User">
+      <Value Profile="(Default)">music.mufcs</Value>
+    </Setting>
+    <Setting Name="update_path" Type="System.String" Scope="User">
+      <Value Profile="(Default)">update</Value>
+    </Setting>
+    <Setting Name="client_update_version" Type="System.String" Scope="User">
+      <Value Profile="(Default)">0.1.0</Value>
+    </Setting>
+    <Setting Name="activate_update" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="music_path" Type="System.String" Scope="User">
+      <Value Profile="(Default)">music</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
