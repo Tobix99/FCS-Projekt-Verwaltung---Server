@@ -62,5 +62,8 @@
     <Setting Name="music_path" Type="System.String" Scope="User">
       <Value Profile="(Default)">music</Value>
     </Setting>
+    <Setting Name="log_path" Type="System.String" Scope="User">
+      <Value Profile="(Default)">log.txt</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

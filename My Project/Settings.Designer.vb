@@ -293,6 +293,18 @@ Namespace My
                 Me("music_path") = value
             End Set
         End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("log.txt")>  _
+        Public Property log_path() As String
+            Get
+                Return CType(Me("log_path"),String)
+            End Get
+            Set
+                Me("log_path") = value
+            End Set
+        End Property
     End Class
 End Namespace
 

@@ -43,7 +43,6 @@ Module Module1
     Private custom_ip As String = My.Settings.custom_ip
     Private current_client_version As String = My.Settings.client_update_version
     Private update_avi As Boolean = My.Settings.activate_update
-    Private import_other As DirectoryInfo
 
     Sub Main()
 
@@ -361,12 +360,10 @@ Module Module1
             template_preset_path.Create()
 
         End If
+        Dim otherdata As DirectoryInfo = New DirectoryInfo(import_path.Name & "\other")
+        If Not otherdata.Exists Then
 
-        import_other = New DirectoryInfo(import_path.FullName & "\other")
-
-        If Not import_other.Exists Then
-
-            import_other.Create()
+            otherdata.Create()
 
         End If
 
@@ -666,18 +663,6 @@ Module Module1
 
         End If
 
-        If check_for_import_files_other() = True Then
-
-            Console.WriteLine("")
-
-            Console.Write(">")
-
-            Dim remaingfiles = import_other.GetFiles("*.*", SearchOption.TopDirectoryOnly)
-
-            move_to_other(remaingfiles(0).FullName)
-
-        End If
-
         'Importpath freigeben
         cmd_process("net share import_share=" & import_path.FullName & " /grant:netzwerkzugriff,full", "", False)
 
@@ -920,11 +905,6 @@ Module Module1
         ClipID.ColumnName = "ClipID"
         ClipID.DefaultValue = Format(0, "000")
 
-        Dim otherData As New DataColumn
-        otherData.DataType = System.Type.GetType("System.Int32")
-        otherData.ColumnName = "otherData"
-        otherData.DefaultValue = Format(0, "000")
-
         Dim archived As New DataColumn
         archived.DataType = System.Type.GetType("System.Boolean")
         archived.ColumnName = "Archived"
@@ -939,7 +919,6 @@ Module Module1
         projecttable.Columns.Add("Description")
         projecttable.Columns.Add(ClipID)
         projecttable.Columns.Add(archived)
-        projecttable.Columns.Add(otherData)
 
         projectdatabase.Tables.Add(projecttable)
 
@@ -1315,10 +1294,6 @@ Module Module1
             Case stringdataarry(2) = "setVersion"
                 set_version(stringdataarry(0), stringdataarry(1), stringdataarry(3), senderip)
                 client_sendMessage(32, 2, senderip, False, "False;" & current_client_version)
-
-            Case stringdataarry(2) = "dataother"
-                gathering_other_and_Project(stringdataarry(3), senderip)
-
             Case Else
                 Console.WriteLine("Unrecognized command '" & DATA & "' from " & senderip)
                 If Interfacelogon = True Then
@@ -2410,8 +2385,6 @@ Module Module1
                 folder.CreateSubdirectory("sourcefiles")
 
                 folder.CreateSubdirectory("projectfiles")
-
-                folder.CreateSubdirectory("otherdata")
 
                 'template
 
@@ -3996,12 +3969,6 @@ Module Module1
             Case sendcode = 36
                 send = "removeMusic"
 
-            Case sendcode = 37
-                send = "dataotherfiles"
-
-            Case sendcode = 38
-                send = "datafiles"
-
         End Select
 
         Select Case True
@@ -4394,16 +4361,16 @@ Module Module1
 
                     If commandarray(1) = "user" Then
 
-                        edit_User("server", "", commandarray(2), Server.LocalIP, Convert.ToInt32(commandarray(4)), commandarray(3), stringdataarry(4))
+                        edit_User("server", "", commandarray(2), Server.LocalIP, Convert.ToInt32(commandarray(4)), commandarray(3), commandarray(4))
 
 
                     ElseIf commandarray(1) = "category" Then
 
-                        edit_Category("server", "", Server.LocalIP, commandarray(2), Convert.ToInt32(commandarray(4)), commandarray(3), stringdataarry(4))
+                        edit_Category("server", "", Server.LocalIP, commandarray(2), Convert.ToInt32(commandarray(4)), commandarray(3), commandarray(4))
 
                     ElseIf commandarray(1) = "camera" Then
 
-                        edit_Camera("server", "", Server.LocalIP, commandarray(2), Convert.ToInt32(commandarray(4)), commandarray(3), stringdataarry(4))
+                        edit_Camera("server", "", Server.LocalIP, commandarray(2), Convert.ToInt32(commandarray(4)), commandarray(3), commandarray(4))
 
                     ElseIf commandarray(1) = "project" Then
 
@@ -4411,7 +4378,7 @@ Module Module1
 
                     ElseIf commandarray(1) = "group" Then
 
-                        edit_Group("server", "", Server.LocalIP, commandarray(2), Convert.ToInt32(commandarray(4)), commandarray(3), stringdataarry(4))
+                        edit_Group("server", "", Server.LocalIP, commandarray(2), Convert.ToInt32(commandarray(4)), commandarray(3), commandarray(4))
 
                     Else
 
@@ -4754,18 +4721,16 @@ Module Module1
 
 #End Region
 
-#Region "IMPORT TO TEMP AND ORG-PROJECT AND OTHER"
+#Region "IMPORT TO TEMP AND ORG-PROJECT"
 
     Private Sub create_import_to_temp_watcher()
 
         ' Create a new FileSystemWatcher and set its properties.
         Dim import_watcher As New FileSystemWatcher()
         import_watcher.Path = import_path.FullName
-        import_watcher.IncludeSubdirectories = False
 
         ' Watch for changes in LastAccess and LastWrite times
-        'import_watcher.NotifyFilter = (NotifyFilters.LastWrite)
-        import_watcher.NotifyFilter = (NotifyFilters.Size)
+        import_watcher.NotifyFilter = (NotifyFilters.LastWrite)
 
         ' Add event handlers.
         AddHandler import_watcher.Changed, AddressOf call_move_to_temp
@@ -4773,24 +4738,6 @@ Module Module1
 
         ' Begin watching.
         import_watcher.EnableRaisingEvents = True
-
-
-        'OTHER DATA
-
-        ' Create a new FileSystemWatcher and set its properties.
-        Dim import_other_watcher As New FileSystemWatcher()
-        import_other_watcher.Path = import_other.FullName
-
-        ' Watch for changes in LastAccess and LastWrite times
-        'import_other_watcher.NotifyFilter = (NotifyFilters.LastWrite)
-        import_other_watcher.NotifyFilter = (NotifyFilters.Size)
-
-        ' Add event handlers.
-        AddHandler import_other_watcher.Changed, AddressOf call_move_to_other
-        AddHandler import_other_watcher.Created, AddressOf call_move_to_other
-
-        ' Begin watching.
-        import_other_watcher.EnableRaisingEvents = True
 
     End Sub
 
@@ -4800,17 +4747,11 @@ Module Module1
 
     End Sub
 
-    Private Sub call_move_to_other(source As Object, e As FileSystemEventArgs)
-
-        move_to_other(e.FullPath)
-
-    End Sub
-
     Private Sub move_to_temp(fullpath As String)
 
         Dim moviefile As New FileInfo(fullpath)
 
-        Dim clipid As Integer = 0
+        Dim clipid As Integer = 000
 
         Dim splittemp As String() = moviefile.Name.Split(CChar("."))
 
@@ -4837,9 +4778,9 @@ Module Module1
         Next i
 
         Dim clipname As String = splittemp2(0) & "-" & splittemp2(1) & "-" & Format(clipid, "000") & "." & splittemp(1)
-
+        Console.WriteLine("1")
         send_to_all_Users(29, 7, Format(clipid, "000") & "." & splittemp(1) & ":" & splittemp2(0))
-
+        Console.WriteLine("2")
         Do
 
             System.Threading.Thread.Sleep(1000)
@@ -4868,73 +4809,6 @@ Module Module1
 
     End Sub
 
-    Private Sub move_to_other(fullpath As String)
-
-        Dim datafile As New FileInfo(fullpath)
-
-        Dim otherid As Integer = 0
-
-        Dim splittemp As String() = datafile.Name.Split(CChar("."))         'split the extension away
-
-        Dim splittemp2 As String() = splittemp(0).Split(CChar("-"))         'split the data in the name
-
-        Dim abfrage As String = "ProjectID = '" & splittemp2(0) & "'"
-
-        Dim foundrows() As DataRow
-
-        foundrows = projectdatabase.Tables("Project").Select(abfrage)
-
-        Dim i As Integer
-        Dim projectidtemp As String
-
-        For i = 0 To foundrows.GetUpperBound(0)
-
-            otherid = Convert.ToInt32(foundrows(i)(6))
-
-            otherid = otherid + 1
-
-            projectdatabase.Tables("Project").Rows(i).Item(6) = Format(otherid, "000")
-
-            projectdatabase.WriteXml(projectdatabasepath.FullName)
-
-            projectidtemp = Format(foundrows(i)(0), "000")
-
-        Next i
-
-        Dim clipname As String = splittemp2(0) & "-" & splittemp2(1) & "-" & Format(otherid, "000") & "." & splittemp(1)
-
-        send_to_all_Users(29, 7, Format(otherid, "000") & "." & splittemp(1) & ":" & splittemp2(0))
-
-        Dim errorcounter As Int32 = 0
-
-        Do
-
-            System.Threading.Thread.Sleep(1000)
-            errorcounter += 1
-            Try
-
-                File.Move(datafile.FullName, project_path.FullName & "\" & projectidtemp & "\otherdata\" & clipname)
-
-                Exit Do
-
-            Catch ex As Exception
-
-                If errorcounter <= 10 Then Exit Do
-                Console.WriteLine(ex.Message)
-
-            End Try
-
-        Loop
-
-        If check_for_import_files_other() = True Then
-
-            Dim remaingfiles = import_other.GetFiles("*.*", SearchOption.TopDirectoryOnly)
-            move_to_other(remaingfiles(0).FullName.ToString)
-
-        End If
-
-    End Sub
-
     Private Function check_for_import_files() As Boolean
 
         Dim remaingfiles = import_path.GetFiles("*.*", SearchOption.TopDirectoryOnly)
@@ -4948,104 +4822,6 @@ Module Module1
         Return False
 
     End Function
-
-    Private Function check_for_import_files_other() As Boolean
-
-        Dim remaingfiles = import_other.GetFiles("*.*", SearchOption.TopDirectoryOnly)
-
-        If remaingfiles.Count > 0 Then
-
-            Return True
-
-        End If
-
-        Return False
-
-    End Function
-
-#End Region
-
-#Region "Project data"
-
-    Private Sub gathering_other_and_Project(id As String, ip As String)
-
-        'Dim ProjectIDquery As String = "ID = '" & id & "'"
-
-        'Dim foundrows() As DataRow
-
-        'foundrows = userdatabase.Tables("Project").Select(ProjectIDquery)
-
-        'Dim i As Integer
-
-        'For i = 0 To foundrows.GetUpperBound(0)
-
-        '    groupID = foundrows(i)(4).ToString
-
-        'Next i
-
-        Dim dataother As New DirectoryInfo(project_path.FullName & "\" & id & "\otherdata")
-
-        Dim remaingfiles = dataother.GetFiles("*.*", SearchOption.TopDirectoryOnly)
-
-        If remaingfiles.Count > 0 Then
-
-            Dim dataotherfiles As String = ""
-
-
-            For Each file In dataother.GetFiles
-
-                If remaingfiles.Count = 1 Then
-
-                    dataotherfiles = file.Name
-                    Exit For
-
-                End If
-
-                dataotherfiles = file.Name & "°" & dataotherfiles
-
-            Next
-
-            client_sendMessage(37, 6, ip, False, dataotherfiles)
-
-        Else
-
-            client_sendMessage(37, 6, ip, False, "empty")
-
-        End If
-
-        Dim datafiles As New DirectoryInfo(project_path.FullName & "\" & id & "\workfiles")
-
-        Dim remaingfiles1 = datafiles.GetFiles("*.*", SearchOption.TopDirectoryOnly)
-
-        If remaingfiles1.Count > 0 Then
-
-            Dim datafiles1 As String = ""
-
-
-            For Each file In datafiles.GetFiles
-
-                If remaingfiles1.Count = 1 Then
-
-                    datafiles1 = file.Name
-                    Exit For
-
-                End If
-
-                datafiles1 = file.Name & "°" & datafiles1
-
-            Next
-
-
-
-            client_sendMessage(38, 6, ip, False, datafiles1)
-
-        Else
-
-            client_sendMessage(38, 6, ip, False, "empty")
-
-        End If
-
-    End Sub
 
 #End Region
 
