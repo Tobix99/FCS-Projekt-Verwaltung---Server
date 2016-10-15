@@ -654,30 +654,6 @@ Module Module1
 
         create_import_to_temp_watcher()
 
-        If check_for_import_files() = True Then
-
-            Console.WriteLine("")
-
-            Console.Write(">")
-
-            Dim remaingfiles = import_path.GetFiles("*.*", SearchOption.TopDirectoryOnly)
-
-            move_to_temp(remaingfiles(0).FullName)
-
-        End If
-
-        If check_for_import_files_other() = True Then
-
-            Console.WriteLine("")
-
-            Console.Write(">")
-
-            Dim remaingfiles = import_other.GetFiles("*.*", SearchOption.TopDirectoryOnly)
-
-            move_to_other(remaingfiles(0).FullName)
-
-        End If
-
         'Importpath freigeben
         cmd_process("net share import_share=" & import_path.FullName & " /grant:netzwerkzugriff,full", "", False)
 
@@ -838,6 +814,31 @@ Module Module1
         Next
 
 #End Region
+
+        'noch nicht importiere Dateien importieren
+        If check_for_import_files() = True Then
+
+            Console.WriteLine("")
+
+            Console.Write(">")
+
+            Dim remaingfiles = import_path.GetFiles("*.*", SearchOption.TopDirectoryOnly)
+
+            move_to_temp(remaingfiles(0).FullName)
+
+        End If
+
+        If check_for_import_files_other() = True Then
+
+            Console.WriteLine("")
+
+            Console.Write(">")
+
+            Dim remaingfiles = import_other.GetFiles("*.*", SearchOption.TopDirectoryOnly)
+
+            move_to_other(remaingfiles(0).FullName)
+
+        End If
 
         'auf eingabe warten
         waitingforinput()
@@ -4782,7 +4783,7 @@ Module Module1
         import_other_watcher.Path = import_other.FullName
 
         ' Watch for changes in LastAccess and LastWrite times
-        'import_other_watcher.NotifyFilter = (NotifyFilters.LastWrite)
+        import_other_watcher.NotifyFilter = (NotifyFilters.LastWrite)
         import_other_watcher.NotifyFilter = (NotifyFilters.Size)
 
         ' Add event handlers.
@@ -4830,7 +4831,7 @@ Module Module1
 
             clipid = clipid + 1
 
-            projectdatabase.Tables("Project").Rows(i).Item(4) = Format(clipid, "000")
+            foundrows(i)(4) = Format(clipid, "000")
 
             projectdatabase.WriteXml(projectdatabasepath.FullName)
 
@@ -4840,9 +4841,14 @@ Module Module1
 
         send_to_all_Users(29, 7, Format(clipid, "000") & "." & splittemp(1) & ":" & splittemp2(0))
 
-        Do
+        Dim errorcounter As Int32 = 0
+        Dim destfile As String = temp_path.FullName & "\" & clipname
 
-            System.Threading.Thread.Sleep(1000)
+        If File.Exists(destfile) Then
+            File.Delete(destfile)
+        End If
+
+        Do
 
             Try
 
@@ -4852,7 +4858,16 @@ Module Module1
 
             Catch ex As Exception
 
+                errorcounter += 1
+
+                If errorcounter <= 10 Then
+                    Console.WriteLine(ex.Message)
+                    Exit Do
+                End If
+
             End Try
+
+            System.Threading.Thread.Sleep(1000)
 
         Loop
 
@@ -4893,7 +4908,7 @@ Module Module1
 
             otherid = otherid + 1
 
-            projectdatabase.Tables("Project").Rows(i).Item(6) = Format(otherid, "000")
+            foundrows(i)(6) = Format(otherid, "000")
 
             projectdatabase.WriteXml(projectdatabasepath.FullName)
 
@@ -4906,23 +4921,33 @@ Module Module1
         send_to_all_Users(29, 7, Format(otherid, "000") & "." & splittemp(1) & ":" & splittemp2(0))
 
         Dim errorcounter As Int32 = 0
+        Dim destfile As String = project_path.FullName & "\" & projectidtemp & "\otherdata\" & clipname
+
+        If File.Exists(destfile) Then
+            File.Delete(destfile)
+        End If
 
         Do
 
-            System.Threading.Thread.Sleep(1000)
-            errorcounter += 1
             Try
 
-                File.Move(datafile.FullName, project_path.FullName & "\" & projectidtemp & "\otherdata\" & clipname)
+                File.Move(datafile.FullName, destfile)
+
 
                 Exit Do
 
             Catch ex As Exception
 
-                If errorcounter <= 10 Then Exit Do
-                Console.WriteLine(ex.Message)
+                errorcounter += 1
+
+                If errorcounter <= 10 Then
+                    Console.WriteLine(ex.Message)
+                    Exit Do
+                End If
 
             End Try
+
+            System.Threading.Thread.Sleep(1000)
 
         Loop
 
