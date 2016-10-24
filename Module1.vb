@@ -4862,7 +4862,7 @@ Module Module1
 
                 If errorcounter <= 10 Then
                     Console.WriteLine(ex.Message)
-                    Exit Do
+                    Exit Try
                 End If
 
             End Try
@@ -4871,15 +4871,19 @@ Module Module1
 
         Loop
 
+        System.Threading.Thread.Sleep(1000)
+
         If check_for_import_files() = True Then
 
             Dim remaingfiles = import_path.GetFiles("*.*", SearchOption.TopDirectoryOnly)
 
             move_to_temp(remaingfiles(0).FullName)
 
-        End If
+        Else
 
-        waiting()
+            waitingforinput()
+
+        End If
 
     End Sub
 
@@ -4942,7 +4946,7 @@ Module Module1
 
                 If errorcounter <= 10 Then
                     Console.WriteLine(ex.Message)
-                    Exit Do
+                    Exit Try
                 End If
 
             End Try
@@ -4955,6 +4959,10 @@ Module Module1
 
             Dim remaingfiles = import_other.GetFiles("*.*", SearchOption.TopDirectoryOnly)
             move_to_other(remaingfiles(0).FullName.ToString)
+
+        Else
+
+            waitingforinput()
 
         End If
 
@@ -5040,27 +5048,24 @@ Module Module1
 
         Dim datafiles As New DirectoryInfo(project_path.FullName & "\" & id & "\workfiles")
 
-        Dim remaingfiles1 = datafiles.GetFiles("*.*", SearchOption.TopDirectoryOnly)
+        Dim remaingfiles1 = datafiles.GetFiles("*.*", SearchOption.AllDirectories)
 
         If remaingfiles1.Count > 0 Then
 
             Dim datafiles1 As String = ""
 
-
-            For Each file In datafiles.GetFiles
+            For Each file In datafiles.GetFiles("*.*", SearchOption.AllDirectories)
 
                 If remaingfiles1.Count = 1 Then
 
-                    datafiles1 = file.Name
+                    datafiles1 = file.Name & "^" & file.Directory.Name
                     Exit For
 
                 End If
 
-                datafiles1 = file.Name & "°" & datafiles1
+                datafiles1 = file.Name & "^" & file.Directory.Name & "°" & datafiles1
 
             Next
-
-
 
             client_sendMessage(38, 6, ip, False, datafiles1)
 
